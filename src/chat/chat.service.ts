@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AzureChatOpenAI } from '@langchain/openai';
 import { ConfigService } from '@nestjs/config';
-import { PDFLoader } from '@langchain/community/document_loaders/fs/pdf';
 import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters';
-import { PrismaService } from '../prisma/prisma.service';
 import { PrismaVectorStore } from '@langchain/community/vectorstores/prisma';
 import { DocumentEmbedding } from '@prisma/client';
 import { MessageContent } from '@langchain/core/messages';
@@ -21,9 +19,7 @@ export class ChatService {
     azureOpenAIApiVersion: this.configService.get<string>("CHAT_MODEL_API_VERSION"), // In Node.js defaults to process.env.AZURE_OPENAI_API_VERSION
   });
   textSplitter
-  constructor(private configService: ConfigService,
-              private prismaService: PrismaService,
-              private prismaVectorStore: PrismaVectorStore<DocumentEmbedding, any, any, any>
+  constructor(private configService: ConfigService, private prismaVectorStore: PrismaVectorStore<DocumentEmbedding, any, any, any>
               ) {
     this.textSplitter= new RecursiveCharacterTextSplitter();
   }
@@ -32,21 +28,7 @@ export class ChatService {
     const response = await this.model.invoke("Hi");
     return `Hello ${query} ${response.content}`;
   }
-  async fileUpload(file: Express.Multer.File ){
-    const loader = new PDFLoader(file.path);
-    const chunks = await this.textSplitter.splitDocuments(await loader.load());
-    const embeddings = await Promise.all(
-      chunks.map((doc) => {
-        return this.prismaService.documentEmbedding.create({
-          data: {
-            content: doc.pageContent,
-            documentName: file.originalname,
-          },
-        });
-      }),
-    );
-    await this.prismaVectorStore.addModels(embeddings);
-  }
+
 
   async chatWithPdf(query: string): Promise<MessageContent> {
     const context = await this.prismaVectorStore.similaritySearch(query, 1);

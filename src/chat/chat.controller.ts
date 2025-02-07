@@ -17,14 +17,6 @@ export class ChatController {
     return this.chatService.chatWithPdf(query);
   }
 
-  @Post("/upload")
-  @UseInterceptors(FileInterceptor('file', {
-    storage: diskStorage({
-      destination: "/temp"
-    }),
-  }))
-  uploadFile(@UploadedFile() file: Express.Multer.File ) {
-    return this.chatService.fileUpload(file)
-  }
+
 
 }
