@@ -12,6 +12,11 @@ export class ChatController {
     return this.chatService.getResponse(query);
   }
 
+  @Get("/chatWithPdf")
+  async chatWithPdf(@Query('query') query: string) {
+    return this.chatService.chatWithPdf(query);
+  }
+
   @Post("/upload")
   @UseInterceptors(FileInterceptor('file', {
     storage: diskStorage({
